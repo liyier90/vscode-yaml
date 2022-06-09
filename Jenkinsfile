@@ -63,6 +63,7 @@ node('rhel8'){
     archive includes:"**.vsix"
 
     stage ("Promote the build to stable") {
+      unstash 'vsix';
       def vsix = findFiles(glob: '**.vsix')
       sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-yaml/ <<< \$'put -p \"${vsix[0].path}\"'"
     }
