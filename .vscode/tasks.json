@@ -12,6 +12,7 @@
       "command": "npm run compile",
       // show the output window only if unrecognized errors occur.
       "presentation": {
+        "panel": "dedicated",
         "reveal": "never"
       },
       // The tsc compiler is started in watching mode

@@ -4,19 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExtensionContext } from 'vscode';
-import { startClient, LanguageClientConstructor, RuntimeEnvironment } from '../extension';
 import { ServerOptions, TransportKind, LanguageClientOptions, LanguageClient } from 'vscode-languageclient/node';
 
-import { SchemaExtensionAPI } from '../schema-extension-api';
-
-import { getRedHatService } from '@redhat-developer/vscode-redhat-telemetry';
-import { JSONSchemaCache } from '../json-schema-cache';
+const id = 'yaml';
+const lsName = 'YAML Support';
+const clientOptions: LanguageClientOptions = {
+  documentSelector: [{ language: 'yaml' }],
+};
+let client: LanguageClient;
 
 // this method is called when vs code is activated
-export async function activate(context: ExtensionContext): Promise<SchemaExtensionAPI> {
-  // Create Telemetry Service
-  const telemetry = await (await getRedHatService(context)).getTelemetryService();
-
+// export async function activate(context: ExtensionContext): Promise<SchemaExtensionAPI> {
+export function activate(context: ExtensionContext): void {
   // The YAML language server is implemented in node
   const serverModule = context.asAbsolutePath('./dist/languageserver.js');
 
@@ -29,15 +28,7 @@ export async function activate(context: ExtensionContext): Promise<SchemaExtensi
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions },
   };
-
-  const newLanguageClient: LanguageClientConstructor = (id: string, name: string, clientOptions: LanguageClientOptions) => {
-    return new LanguageClient(id, name, serverOptions, clientOptions);
-  };
-
-  const runtime: RuntimeEnvironment = {
-    telemetry,
-    schemaCache: new JSONSchemaCache(context.globalStorageUri.fsPath, context.globalState),
-  };
-
-  return startClient(context, newLanguageClient, runtime);
+  client = new LanguageClient(id, lsName, serverOptions, clientOptions);
+  const disposable = client.start();
+  context.subscriptions.push(disposable);
 }
